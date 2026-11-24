@@ -1004,15 +1004,16 @@ function renderC(){
   var vL=vendaLoja();
 
   var qT=fq.reduce(function(s,r){return s+r[7]},0);
-  // FIX 3: iTAbs = |SALDO| not sum(|VALOR MOV|)
-  var iTAbs=Math.abs(fi.reduce(function(s,r){return s+(r[6]||0)},0));
+  // Saldo de inventario com SINAL: GANHO=+ / PERDA=-  ->  contribuicao de perda = -saldo
+  // (ganho entra negativo e REDUZ o total; nao pode ser somado como quebra)
+  var iLoss=-fi.reduce(function(s,r){return s+(r[6]||0)},0);
   var dT=fd.reduce(function(s,r){return s+r[4]},0);
   var rT=fr.reduce(function(s,r){return s+r[7]},0);
-  var totalT=qT+iTAbs+dT+rT;
+  var totalT=qT+iLoss+dT+rT;
   var abat=abatTotais();
   var totalLiq=totalT-abat.total;
   var qp=vT?(qT/vT*100):0;
-  var ip=vT?(iTAbs/vT*100):0;
+  var ip=vT?(iLoss/vT*100):0;
   var dpPct=vT?(dT/vT*100):0;
   var rp=vT?(rT/vT*100):0;
   var tp=vT?(totalLiq/vT*100):0;
@@ -1021,7 +1022,7 @@ function renderC(){
 
   document.getElementById('kbar').innerHTML=kpiHTML([
     {label:'Quebra',value:fmt(qT),sub:fp(qp),cls:'v',center:true},
-    {label:'Invent\u00e1rio',value:fmt(iTAbs),sub:fp(ip),cls:'v',center:true},
+    {label:'Invent\u00e1rio',value:fmt(iLoss),sub:fp(ip),cls:'v',center:true},
     {label:'Descontos',value:fmt(dT),sub:fp(dpPct),cls:'v',center:true},
     {label:'Rebaixa',value:fmt(rT),sub:fp(rp),cls:'v',center:true},
     {label:'Abatimento',value:fmt(abat.total),sub:fp(abatPct),subcls:'ok',cls:'ok',center:true},
@@ -1039,7 +1040,7 @@ function renderC(){
   var lRAgg=agg(fr,1,7);
 
   var lArr=D.l.map(function(name,li){
-    var q=lQ[li]||0;var inv=Math.abs(lISaldo[li]||0);var d=lD[li]||0;var rb=lRAgg[li]||0;
+    var q=lQ[li]||0;var inv=-(lISaldo[li]||0);var d=lD[li]||0;var rb=lRAgg[li]||0;
     var abt=ab.byL[li]||0;
     var tot=q+inv+d+rb-abt;
     var vl=vL[li]||0;
@@ -1050,7 +1051,7 @@ function renderC(){
   });
   lArr.sort(function(a,b){return b.pctTot-a.pctTot;});
 
-  var tRow={n:'TOTAL',q:qT,inv:iTAbs,d:dT,rb:rT,abt:abat.total,tot:totalLiq,vl:vT,pctQ:qp,pctI:ip,pctD:dpPct,pctR:rp,pctTot:tp,dm:dm};
+  var tRow={n:'TOTAL',q:qT,inv:iLoss,d:dT,rb:rT,abt:abat.total,tot:totalLiq,vl:vT,pctQ:qp,pctI:ip,pctD:dpPct,pctR:rp,pctTot:tp,dm:dm};
 
   var hdrs=['Pos','LOJA','QUEBRA (R$)','INVENT\u00c1RIO (R$)','DESCONTOS (R$)','REBAIXA (R$)','ABAT. (R$)','CONSOLID. L\u00cdQ (R$)','% QBR/VND','% INV/VND','% DESC/VND','% REB/VND','GERAL L\u00cdQ %','META','DIF. META'];
   var totalRow=[td('','pos'),td('<strong>TOTAL</strong>','ln2'),td(fmt(tRow.q),'vc2'),td(fmt(tRow.inv),'vc2'),td(fmt(tRow.d),'vc2'),td(fmt(tRow.rb),'vc2'),td('-'+fmt(tRow.abt),'vc2'),td(fmt(tRow.tot),'vc2'),td(fp(tRow.pctQ),'pc2'),td(fp(tRow.pctI),'pc2'),td(fp(tRow.pctD),'pc2'),td(fp(tRow.pctR),'pc2'),td(fp(tRow.pctTot),tRow.pctTot>meta?'pc2-b':'pc2-g'),td(fp(meta),'pc2'),td(fp(tRow.dm),tRow.dm>0?'pc2-b':'pc2-g')];
@@ -1068,7 +1069,7 @@ function renderC(){
   var rRAgg=agg(fr,2,7);
 
   var rArr=D.r.map(function(name,ri){
-    var q=rQ[ri]||0;var inv=Math.abs(rISaldo[ri]||0);var d=rD[ri]||0;var rb=rRAgg[ri]||0;
+    var q=rQ[ri]||0;var inv=-(rISaldo[ri]||0);var d=rD[ri]||0;var rb=rRAgg[ri]||0;
     var abt=ab.byR[ri]||0;
     var tot=q+inv+d+rb-abt;
     var vl=vR[ri]||0;
@@ -1079,7 +1080,7 @@ function renderC(){
   });
   rArr.sort(function(a,b){return b.pctTot-a.pctTot;});
 
-  var rTotRow={n:'TOTAL',q:qT,inv:iTAbs,d:dT,rb:rT,abt:abat.total,tot:totalLiq,vl:vT,pctQ:qp,pctI:ip,pctD:dpPct,pctR:rp,pctTot:tp,dm:dm};
+  var rTotRow={n:'TOTAL',q:qT,inv:iLoss,d:dT,rb:rT,abt:abat.total,tot:totalLiq,vl:vT,pctQ:qp,pctI:ip,pctD:dpPct,pctR:rp,pctTot:tp,dm:dm};
 
   var rHdrs=['Pos','REDE','QUEBRA (R$)','INVENT\u00c1RIO (R$)','DESCONTOS (R$)','REBAIXA (R$)','ABAT. (R$)','CONSOLID. L\u00cdQ (R$)','% QBR/VND','% INV/VND','% DESC/VND','% REB/VND','GERAL L\u00cdQ %','META','DIF. META'];
   var rTotalRow=[td('','pos'),td('<strong>TOTAL</strong>','ln2'),td(fmt(rTotRow.q),'vc2'),td(fmt(rTotRow.inv),'vc2'),td(fmt(rTotRow.d),'vc2'),td(fmt(rTotRow.rb),'vc2'),td('-'+fmt(rTotRow.abt),'vc2'),td(fmt(rTotRow.tot),'vc2'),td(fp(rTotRow.pctQ),'pc2'),td(fp(rTotRow.pctI),'pc2'),td(fp(rTotRow.pctD),'pc2'),td(fp(rTotRow.pctR),'pc2'),td(fp(rTotRow.pctTot),rTotRow.pctTot>meta?'pc2-b':'pc2-g'),td(fp(meta),'pc2'),td(fp(rTotRow.dm),rTotRow.dm>0?'pc2-b':'pc2-g')];
@@ -1099,8 +1100,8 @@ function renderC(){
     var abM=abatMensal();
     var ld=MO.map(function(m){
       var q=fq.filter(function(r){return mk(r[0])===m;}).reduce(function(s,r){return s+r[7]},0);
-      // FIX 3: monthly inventario = |SALDO| not sum(|VALOR|)
-      var inv=Math.abs(fi.filter(function(r){return mk(r[0])===m;}).reduce(function(s,r){return s+(r[6]||0)},0));
+      // mensal: saldo com sinal (ganho negativo reduz o consolidado)
+      var inv=-fi.filter(function(r){return mk(r[0])===m;}).reduce(function(s,r){return s+(r[6]||0)},0);
       var d=fd.filter(function(r){return mk(r[0])===m;}).reduce(function(s,r){return s+r[4]},0);
       var rb=fr.filter(function(r){return mk(r[0])===m;}).reduce(function(s,r){return s+r[7]},0);
       var v=vM[m]||0;var ab=abM[m]||0;var liq=q+inv+d+rb-ab;

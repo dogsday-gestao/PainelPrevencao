@@ -228,7 +228,7 @@ function render(){
   cards+=cardHTML('% Quebra / Venda',fp(pct),dm<=0?'grn':'red',(dm<=0?'ABAIXO DA META':'ACIMA DA META')+' \u00b7 Meta '+fp(RES.meta));
   if(verV)cards+=cardHTML('Venda Total',fmt(v),'blue','');
   cards+=cardHTML('Descontos',fmt(d),'org','');
-  cards+=cardHTML('Invent\u00e1rio (saldo)',fmt(iv),iv>=0?'grn':'red','');
+  cards+=cardHTML('Invent\u00e1rio',fmt(-iv),(-iv)>0?'red':'grn','');
   cards+=cardHTML('Rebaixa',fmt(rb),'org','');
   document.getElementById('kpis').innerHTML=cards;
   var la=lojas.map(function(li){var o=perL[li]||{q:0,v:0};var p=o.v?(o.q/o.v*100):0;return{li:li,q:o.q,p:p,dm:p-RES.meta};});
